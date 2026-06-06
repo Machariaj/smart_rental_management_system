@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment variables
+.env
+*.env
+
+# Database
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+dist/
+.next/
+
+# Vite build output
+frontend/dist/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# ML models
+*.pkl
+*.joblib
+models/
