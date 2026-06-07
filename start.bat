@@ -136,7 +136,7 @@ if errorlevel 1 (
 )
 
 echo [..] Creating tables...
-python -c "from app.database import Base, engine; from app import models; Base.metadata.create_all(bind=engine); print('[OK] Tables ready')"
+python setup_db.py
 if errorlevel 1 (
     echo [ERROR] Could not create database tables.
     echo Press any key to exit...
