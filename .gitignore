@@ -40,7 +40,7 @@ Thumbs.db
 .idea/
 *.swp
 
-# ML models
+# ML models (only root-level models folder, not app/models/)
 *.pkl
 *.joblib
-models/
+/models/
