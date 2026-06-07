@@ -1,4 +1,11 @@
 @echo off
+
+:: Re-launch inside a persistent window so it can never disappear
+if "%~1"=="" (
+    cmd /k "%~f0" run
+    exit
+)
+
 setlocal enabledelayedexpansion
 title SMART Rental Management System - Setup
 
@@ -19,9 +26,11 @@ if errorlevel 1 (
     echo Please install Python 3.10 or higher from:
     echo   https://www.python.org/downloads/
     echo.
-    echo IMPORTANT: During installation check the box "Add Python to PATH"
+    echo IMPORTANT: During installation check "Add Python to PATH"
     echo.
-    goto :error
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
 )
 for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYTHON_VER=%%i
 echo [OK] Python %PYTHON_VER% detected
@@ -33,15 +42,16 @@ if errorlevel 1 (
     echo.
     echo [ERROR] Node.js is not installed or not in PATH.
     echo.
-    echo Please install Node.js 18 or higher from:
-    echo   https://nodejs.org/en/download/
+    echo Please install Node.js 18+ from: https://nodejs.org
     echo.
-    goto :error
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
 )
 for /f %%i in ('node --version 2^>^&1') do set NODE_VER=%%i
 echo [OK] Node.js %NODE_VER% detected
 
-:: ── 3. Backend: Virtual environment ───────────────────────────────────────
+:: ── 3. Virtual environment ─────────────────────────────────────────────────
 echo.
 echo  -- Backend Setup --
 echo.
@@ -52,7 +62,9 @@ if not exist "venv" (
     python -m venv venv
     if errorlevel 1 (
         echo [ERROR] Failed to create virtual environment.
-        goto :error
+        echo Press any key to exit...
+        pause >nul
+        exit /b 1
     )
     echo [OK] Virtual environment created
 ) else (
@@ -62,14 +74,16 @@ if not exist "venv" (
 call venv\Scripts\activate.bat
 python -m pip install --upgrade pip -q
 
-:: ── 4. Install Python packages ─────────────────────────────────────────────
+:: ── 4. Python packages ─────────────────────────────────────────────────────
 echo [..] Installing Python packages (this may take a few minutes)...
 pip install -r requirements.txt
 if errorlevel 1 (
     echo.
     echo [ERROR] Failed to install Python packages.
     echo Check your internet connection and try again.
-    goto :error
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
 )
 echo [OK] Python packages installed
 
@@ -80,16 +94,17 @@ if errorlevel 1 (
     echo.
     echo [ERROR] Cannot connect to MySQL.
     echo.
-    echo Please start MySQL before running this script:
-    echo   - Open XAMPP Control Panel
-    echo   - Click Start next to MySQL
-    echo   - Then double-click this file again
+    echo   1. Open XAMPP Control Panel
+    echo   2. Click Start next to MySQL
+    echo   3. Close this window and run start.bat again
     echo.
-    goto :error
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
 )
 echo [OK] MySQL is running
 
-:: ── 6. Create .env if missing ──────────────────────────────────────────────
+:: ── 6. Create .env ─────────────────────────────────────────────────────────
 if not exist ".env" (
     echo [..] Creating .env configuration file...
     (
@@ -105,40 +120,31 @@ if not exist ".env" (
         echo.
         echo CORS_ORIGINS=["http://localhost:5173","http://localhost:8000","http://127.0.0.1:5173"]
     ) > .env
-    echo [OK] .env file created
+    echo [OK] .env created
 ) else (
-    echo [OK] .env file already exists
+    echo [OK] .env already exists
 )
 
-:: ── 7. Create database and tables ─────────────────────────────────────────
+:: ── 7. Database setup ──────────────────────────────────────────────────────
 echo [..] Setting up database...
-python -c "
-import pymysql
-try:
-    conn = pymysql.connect(host='localhost', user='root', password='', charset='utf8mb4')
-    conn.cursor().execute('CREATE DATABASE IF NOT EXISTS realestate_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
-    conn.commit()
-    conn.close()
-    print('[OK] Database ready')
-except Exception as e:
-    print(f'[ERROR] {e}')
-    exit(1)
-"
-if errorlevel 1 goto :error
+python -c "import pymysql; conn=pymysql.connect(host='localhost',user='root',password='',charset='utf8mb4'); conn.cursor().execute('CREATE DATABASE IF NOT EXISTS realestate_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'); conn.commit(); conn.close(); print('[OK] Database ready')"
+if errorlevel 1 (
+    echo [ERROR] Could not create database.
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
+)
 
-echo [..] Creating database tables...
-python -c "
-from app.database import Base, engine
-from app import models
-Base.metadata.create_all(bind=engine)
-print('[OK] Tables created')
-"
+echo [..] Creating tables...
+python -c "from app.database import Base, engine; from app import models; Base.metadata.create_all(bind=engine); print('[OK] Tables ready')"
 if errorlevel 1 (
     echo [ERROR] Could not create database tables.
-    goto :error
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
 )
 
-:: ── 8. Frontend: Install packages ─────────────────────────────────────────
+:: ── 8. Frontend packages ───────────────────────────────────────────────────
 echo.
 echo  -- Frontend Setup --
 echo.
@@ -149,42 +155,34 @@ if not exist "node_modules" (
     call npm install
     if errorlevel 1 (
         echo [ERROR] Failed to install Node.js packages.
-        goto :error
+        echo Press any key to exit...
+        pause >nul
+        exit /b 1
     )
     echo [OK] Node.js packages installed
 ) else (
     echo [OK] Node.js packages already installed
 )
 
-:: ── 9. Launch servers ──────────────────────────────────────────────────────
+:: ── 9. Launch ──────────────────────────────────────────────────────────────
 echo.
 echo  ==========================================
-echo    Launching Application
+echo    Starting Application
 echo  ==========================================
 echo.
-echo  Backend  : http://localhost:8000
-echo  Frontend : http://localhost:5173
-echo  API Docs : http://localhost:8000/docs
+echo  Backend  --^>  http://localhost:8000
+echo  Frontend --^>  http://localhost:5173
+echo  API Docs --^>  http://localhost:8000/docs
 echo.
-echo  Two windows will open - one for each server.
-echo  Keep them open while using the app.
+echo  Two windows will open. Keep them running.
 echo.
 
-start "SMART Rental - Backend" cmd /k "cd /d "%~dp0backend" && call venv\Scripts\activate.bat && echo Backend running at http://localhost:8000 && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "SMART Rental - Backend" cmd /k "cd /d "%~dp0backend" && call venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 timeout /t 4 /nobreak >nul
-start "SMART Rental - Frontend" cmd /k "cd /d "%~dp0frontend" && echo Frontend running at http://localhost:5173 && npm run dev"
+start "SMART Rental - Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev"
 
-echo  Done! Open http://localhost:5173 in your browser.
+echo  Setup complete!
+echo  Open http://localhost:5173 in your browser.
 echo.
-pause
-exit /b 0
-
-:: ── Error handler ──────────────────────────────────────────────────────────
-:error
-echo.
-echo  ==========================================
-echo    Setup failed. Read the error above.
-echo  ==========================================
-echo.
-pause
-exit /b 1
+echo  Press any key to close this setup window...
+pause >nul
