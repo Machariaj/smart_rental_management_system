@@ -127,7 +127,7 @@ if not exist ".env" (
 
 :: ── 7. Database setup ──────────────────────────────────────────────────────
 echo [..] Setting up database...
-python -c "import pymysql; conn=pymysql.connect(host='localhost',user='root',password='',charset='utf8mb4'); conn.cursor().execute('CREATE DATABASE IF NOT EXISTS realestate_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'); conn.commit(); conn.close(); print('[OK] Database ready')"
+python -c "import pymysql; c=pymysql.connect(host='localhost',user='root',password='',charset='utf8mb4'); c.cursor().execute('CREATE DATABASE IF NOT EXISTS realestate_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'); c.commit(); c.close(); print('[OK] Database ready')"
 if errorlevel 1 (
     echo [ERROR] Could not create database.
     echo Press any key to exit...
@@ -136,7 +136,16 @@ if errorlevel 1 (
 )
 
 echo [..] Creating tables...
-python setup_db.py
+(
+    echo import sys, os
+    echo sys.path.insert^(0, os.path.dirname^(os.path.abspath^(__file__^)^)^)
+    echo from app.database import Base, engine
+    echo from app.models import User, Property, Unit, Tenant, RentBill, Payment
+    echo from app.models import Arrears, UtilityBill, MaintenanceRequest, MaintenanceSchedule, ChatSession, ChatMessage
+    echo Base.metadata.create_all^(bind=engine^)
+    echo print^("[OK] Tables created"^)
+) > "%~dp0backend\setup_db.py"
+python "%~dp0backend\setup_db.py"
 if errorlevel 1 (
     echo [ERROR] Could not create database tables.
     echo Press any key to exit...
