@@ -25,7 +25,12 @@ class Settings(BaseSettings):
     ML_RETRAIN_INTERVAL_DAYS: int = 30
     
     # Security
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: list = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://localhost:8000",
+    ]
     
     class Config:
         env_file = ".env"
