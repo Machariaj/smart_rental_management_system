@@ -73,6 +73,7 @@ export const landlordExtAPI = {
   getUtilityBills: (propertyId) => api.get('/landlord/utility-bills', { params: { property_id: propertyId } }),
   createUtilityBill: (data) => api.post('/landlord/utility-bills', data),
   deleteUtilityBill: (id) => api.delete(`/landlord/utility-bills/${id}`),
+  markUtilityBillPaid: (id) => api.patch(`/landlord/utility-bills/${id}/mark-paid`),
   seedTestData: (propertyId) => api.post(`/landlord/seed-test-data/${propertyId}`),
 }
 

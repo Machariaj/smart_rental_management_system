@@ -43,6 +43,7 @@ function LandlordPayments() {
   const [saving, setSaving] = useState(false)
   const [verifying, setVerifying] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [markingPaid, setMarkingPaid] = useState(null)
 
   const now = new Date()
 
@@ -134,6 +135,15 @@ function LandlordPayments() {
       setUtilityBills(u => u.filter(b => b.id !== id))
     } catch { setError('Failed to delete') }
     finally { setDeleting(null) }
+  }
+
+  const handleMarkUtilityPaid = async (id) => {
+    setMarkingPaid(id)
+    try {
+      const res = await landlordExtAPI.markUtilityBillPaid(id)
+      setUtilityBills(u => u.map(b => b.id === id ? { ...b, is_paid: res.data.is_paid, paid_date: res.data.is_paid ? new Date().toISOString() : null } : b))
+    } catch { setError('Failed to update payment status') }
+    finally { setMarkingPaid(null) }
   }
 
   const handleRecordPayment = async (e) => {
@@ -393,7 +403,8 @@ function LandlordPayments() {
                         <th className="px-5 py-3">Period</th>
                         <th className="px-5 py-3">Usage</th>
                         <th className="px-5 py-3">Amount</th>
-                        <th className="px-5 py-3">Status</th>
+                        <th className="px-5 py-3">Payment</th>
+                        <th className="px-5 py-3">Anomaly</th>
                         <th className="px-5 py-3"></th>
                       </tr>
                     </thead>
@@ -405,6 +416,19 @@ function LandlordPayments() {
                           <td className="px-5 py-3 text-gray-600">{MONTHS[b.month - 1]} {b.year}</td>
                           <td className="px-5 py-3 text-gray-600">{b.usage_value} units</td>
                           <td className="px-5 py-3 font-medium">KShs {b.amount?.toLocaleString()}</td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${b.is_paid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                                {b.is_paid ? `Paid${b.paid_date ? ' ' + new Date(b.paid_date).toLocaleDateString() : ''}` : 'Unpaid'}
+                              </span>
+                              <button
+                                onClick={() => handleMarkUtilityPaid(b.id)}
+                                disabled={markingPaid === b.id}
+                                className={`text-xs px-2 py-0.5 rounded border disabled:opacity-50 ${b.is_paid ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-green-300 text-green-700 hover:bg-green-50'}`}>
+                                {markingPaid === b.id ? '...' : b.is_paid ? 'Undo' : 'Mark Paid'}
+                              </button>
+                            </div>
+                          </td>
                           <td className="px-5 py-3">
                             {b.is_anomalous ? (
                               <div>

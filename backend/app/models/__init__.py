@@ -150,6 +150,8 @@ class UtilityBill(Base):
     usage_value = Column(Float)
     is_anomalous = Column(Boolean, default=False)
     anomaly_reason = Column(String(500), nullable=True)
+    is_paid = Column(Boolean, default=False)
+    paid_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

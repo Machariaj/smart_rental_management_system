@@ -432,6 +432,8 @@ def list_utility_bills(
         "amount": b.amount, "usage_value": b.usage_value,
         "is_anomalous": b.is_anomalous,
         "anomaly_reason": b.anomaly_reason,
+        "is_paid": b.is_paid,
+        "paid_date": str(b.paid_date) if b.paid_date else None,
         "created_at": str(b.created_at),
     } for b in bills]
 
@@ -472,6 +474,20 @@ def create_utility_bill(
     db.commit()
     db.refresh(bill)
     return {"id": bill.id, "is_anomalous": is_anomalous, "anomaly_reason": anomaly_reason}
+
+@router.patch("/utility-bills/{bill_id}/mark-paid")
+def mark_utility_bill_paid(
+    bill_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_landlord_user)
+):
+    bill = db.query(UtilityBill).filter(UtilityBill.id == bill_id).first()
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    bill.is_paid = not bill.is_paid
+    bill.paid_date = datetime.utcnow() if bill.is_paid else None
+    db.commit()
+    return {"id": bill.id, "is_paid": bill.is_paid}
 
 @router.delete("/utility-bills/{bill_id}")
 def delete_utility_bill(
