@@ -4,7 +4,7 @@ import { authAPI } from '../services/api'
 import useAuthStore from '../store/authStore'
 
 function LoginPage() {
-  const [mode, setMode] = useState('login')
+  const [mode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -60,7 +60,7 @@ function LoginPage() {
         </h1>
         <p className="text-center text-gray-500 text-sm mb-6">Management System</p>
 
-        <div className="flex mb-6 border border-gray-200 rounded-lg overflow-hidden">
+        {/* <div className="flex mb-6 border border-gray-200 rounded-lg overflow-hidden">
           <button
             onClick={() => { setMode('login'); setError('') }}
             className={`flex-1 py-2 text-sm font-medium ${mode === 'login' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
@@ -73,7 +73,7 @@ function LoginPage() {
           >
             Register
           </button>
-        </div>
+        </div> */}
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
