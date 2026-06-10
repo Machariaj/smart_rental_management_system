@@ -291,10 +291,14 @@ def list_rent_bills(
         unit = unit_map.get(b.unit_id)
         tenant = db.query(Tenant).filter(Tenant.unit_id == b.unit_id, Tenant.is_active == True).first()
         tenant_user = db.query(User).filter(User.id == tenant.user_id).first() if tenant else None
+        amount_paid = db.query(func.coalesce(func.sum(Payment.amount), 0)).filter(Payment.rent_bill_id == b.id).scalar()
+        balance_due = round(max(0, b.amount - float(amount_paid)), 2)
         result.append({
             "id": b.id, "unit": unit.unit_number if unit else "", "unit_id": b.unit_id,
             "tenant_name": tenant_user.full_name if tenant_user else "Vacant",
             "month": b.month, "year": b.year, "amount": b.amount,
+            "amount_paid": float(amount_paid),
+            "balance_due": balance_due,
             "due_date": str(b.due_date), "is_paid": b.is_paid, "paid_date": str(b.paid_date) if b.paid_date else None,
         })
     return result
@@ -760,7 +764,7 @@ def get_arrears_alerts(
 
 # ============ MAINTENANCE MANAGEMENT ============
 
-@router.get("/maintenance-requests", response_model=list[MaintenanceRequestResponse])
+@router.get("/maintenance-requests")
 def list_maintenance_requests(
     property_id: int,
     status: str = None,
@@ -768,25 +772,37 @@ def list_maintenance_requests(
     current_user: User = Depends(get_landlord_user)
 ):
     """List maintenance requests for property"""
-    # Verify property ownership
     prop = db.query(Property).filter(
         Property.id == property_id,
         Property.landlord_id == current_user.id
     ).first()
-    
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")
-    
-    # Get maintenance requests for units
+
     units = db.query(Unit).filter(Unit.property_id == property_id).all()
-    unit_ids = [u.id for u in units]
-    
+    unit_map = {u.id: u for u in units}
+    unit_ids = list(unit_map.keys())
+
     query = db.query(MaintenanceRequest).filter(MaintenanceRequest.unit_id.in_(unit_ids))
-    
     if status:
         query = query.filter(MaintenanceRequest.status == status)
-    
-    return query.all()
+
+    result = []
+    for req in query.order_by(MaintenanceRequest.created_at.desc()).all():
+        unit = unit_map.get(req.unit_id)
+        result.append({
+            "id": req.id,
+            "unit_id": req.unit_id,
+            "unit_number": unit.unit_number if unit else f"Unit {req.unit_id}",
+            "tenant_id": req.tenant_id,
+            "title": getattr(req, "title", None),
+            "description": req.description,
+            "category": req.category,
+            "priority": req.priority,
+            "status": req.status,
+            "created_at": req.created_at,
+        })
+    return result
 
 @router.patch("/maintenance-requests/{request_id}/approve")
 def approve_maintenance_request(

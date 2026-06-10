@@ -135,7 +135,7 @@ function LandlordMaintenance() {
                         <p className="font-medium text-gray-800">{req.title || req.description?.substring(0, 60)}</p>
                         <p className="text-sm text-gray-600 mt-1">{req.description}</p>
                         <div className="flex gap-4 mt-2 text-xs text-gray-400">
-                          <span>Unit: <strong className="text-gray-600">{req.unit_id}</strong></span>
+                          <span>House No.: <strong className="text-gray-600">{req.unit_number || req.unit_id}</strong></span>
                           <span>Submitted: {new Date(req.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>

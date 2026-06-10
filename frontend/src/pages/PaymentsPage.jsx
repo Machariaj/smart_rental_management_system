@@ -251,23 +251,39 @@ function LandlordPayments() {
                       <th className="px-5 py-3">House No.</th>
                       <th className="px-5 py-3">Tenant</th>
                       <th className="px-5 py-3">Period</th>
-                      <th className="px-5 py-3">Amount</th>
+                      <th className="px-5 py-3">Billed</th>
+                      <th className="px-5 py-3">Paid</th>
+                      <th className="px-5 py-3">Balance Due</th>
                       <th className="px-5 py-3">Due Date</th>
                       <th className="px-5 py-3">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {bills.map(b => (
-                      <tr key={b.id} className="border-b last:border-0 hover:bg-gray-50">
+                      <tr key={b.id} className={`border-b last:border-0 hover:bg-gray-50 ${b.balance_due > 0 && b.amount_paid > 0 ? 'bg-orange-50' : ''}`}>
                         <td className="px-5 py-4"><span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">{b.unit}</span></td>
                         <td className="px-5 py-4 text-gray-600">{b.tenant_name}</td>
                         <td className="px-5 py-4 text-gray-600">{MONTHS[b.month - 1]} {b.year}</td>
                         <td className="px-5 py-4 font-medium">KShs {b.amount?.toLocaleString()}</td>
+                        <td className="px-5 py-4 text-green-700 font-medium">
+                          {b.amount_paid > 0 ? `KShs ${b.amount_paid?.toLocaleString()}` : '—'}
+                        </td>
+                        <td className="px-5 py-4">
+                          {b.balance_due > 0
+                            ? <span className="text-orange-600 font-semibold">KShs {b.balance_due?.toLocaleString()}</span>
+                            : <span className="text-green-600 text-xs">—</span>}
+                        </td>
                         <td className="px-5 py-4 text-gray-600">{new Date(b.due_date).toLocaleDateString()}</td>
                         <td className="px-5 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${b.is_paid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                            {b.is_paid ? `Paid ${b.paid_date ? new Date(b.paid_date).toLocaleDateString() : ''}` : 'Unpaid'}
-                          </span>
+                          {b.is_paid && b.balance_due === 0 ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              Paid {b.paid_date ? new Date(b.paid_date).toLocaleDateString() : ''}
+                            </span>
+                          ) : b.amount_paid > 0 ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Partial</span>
+                          ) : (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600">Unpaid</span>
+                          )}
                         </td>
                       </tr>
                     ))}

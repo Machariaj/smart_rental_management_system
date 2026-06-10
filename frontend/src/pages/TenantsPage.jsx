@@ -185,16 +185,16 @@ export default function TenantsPage() {
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow-sm border text-center">
-          <p className="text-2xl font-bold">{tenants.length}</p>
-          <p className="text-xs text-gray-500 mt-1">Total Tenants</p>
+          <p className="text-2xl font-bold">{filtered.length}</p>
+          <p className="text-xs text-gray-500 mt-1">{filterProperty ? 'Tenants (filtered)' : 'Total Tenants'}</p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border text-center">
-          <p className="text-2xl font-bold text-green-600">{tenants.filter(t => t.is_active).length}</p>
+          <p className="text-2xl font-bold text-green-600">{filtered.filter(t => t.is_active).length}</p>
           <p className="text-xs text-gray-500 mt-1">Active</p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border text-center">
           <p className="text-2xl font-bold text-blue-600">
-            KShs {tenants.reduce((s, t) => s + (t.monthly_rent || 0), 0).toLocaleString()}
+            KShs {filtered.reduce((s, t) => s + (t.monthly_rent || 0), 0).toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-1">Monthly Rent Total</p>
         </div>
